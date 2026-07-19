@@ -1,0 +1,17 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.dockster/uxspot-mcp",
+  "description": "uxspot.io UX reference: glossary, AI x UX tools directory, checklists and Learn UX curriculum",
+  "repository": {
+    "url": "https://github.com/dockster/uxspot-mcp",
+    "source": "github"
+  },
+  "version": "1.0.0",
+  "websiteUrl": "https://uxspot.io/mcp-server",
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://uxspot.io/mcp"
+    }
+  ]
+}
