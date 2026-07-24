@@ -9,10 +9,11 @@ import glossary from '../src/data/glossary.json';
 import toolsData from '../src/data/tools.json';
 import checklists from '../src/data/checklists.json';
 import { curriculum } from '../src/data/curriculum';
+import { nearestFor } from '../src/lib/glossaryRelated';
 
 const SITE = 'https://uxspot.io';
 const PROTOCOL_VERSION = '2025-06-18';
-const SERVER_INFO = { name: 'uxspot', version: '1.0.0' };
+const SERVER_INFO = { name: 'uxspot', version: '1.1.0' };
 
 // Cloudflare Workers Analytics Engine dataset (bound in the Pages dashboard as
 // MCP_ANALYTICS). Minimal structural type — @cloudflare/workers-types is not a
@@ -121,6 +122,12 @@ const TOOLS = [
     description: 'Return the full Learn UX curriculum outline (13 sections, 77 topics) with URLs.',
     inputSchema: { type: 'object', properties: {} },
   },
+  {
+    name: 'spot_check',
+    description:
+      'Play Spot Check — the uxspot daily UX vocabulary game — with the user. Returns one quiz round: a UX term paired with a definition that is EITHER its real definition OR a plausible fake (a closely-related term\'s real definition), plus the answer and explanation. Show the user the term and the definition, ask "does this definition fit?", let them guess, then reveal. Call again for another round. Full daily game at ' + SITE + '/practice.',
+    inputSchema: { type: 'object', properties: {} },
+  },
 ];
 
 // ---- Tool handlers (all return a plain-text string) ----
@@ -204,6 +211,34 @@ const handlers: Record<string, (args: any) => string> = {
               .join('\n')
         )
         .join('\n\n')
+    );
+  },
+
+  spot_check() {
+    const term = TERMS[Math.floor(Math.random() * TERMS.length)];
+    const realOne = Math.random() < 0.5;
+    const head =
+      `**Spot Check** — does this definition fit the term?\n\n` +
+      `**Term:** ${term.term}\n`;
+    if (realOne) {
+      return (
+        head +
+        `**Definition shown:** "${term.definition}"\n\n` +
+        `--- (don't reveal until the user guesses)\n` +
+        `**Answer:** IT FITS — this is the real definition of **${term.term}**.\n\n` +
+        `Source: ${SITE}/glossary/${term.slug} · Play the daily game: ${SITE}/practice`
+      );
+    }
+    // Plausible fake: a genuinely-related term's real definition (never random).
+    const near = nearestFor(term, 5);
+    const decoy = near[Math.floor(Math.random() * near.length)] || TERMS.find((t) => t.slug !== term.slug)!;
+    return (
+      head +
+      `**Definition shown:** "${decoy.definition}"\n\n` +
+      `--- (don't reveal until the user guesses)\n` +
+      `**Answer:** IT DOESN'T FIT — that's actually the definition of **${decoy.term}**. ` +
+      `**${term.term}** really means: ${term.definition}\n\n` +
+      `Source: ${SITE}/glossary/${term.slug} · Play the daily game: ${SITE}/practice`
     );
   },
 };
